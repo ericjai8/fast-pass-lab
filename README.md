@@ -43,3 +43,16 @@ In 91% of trades, the 5m bar that filled the entry also touched the stop. A 5m b
 | Stop came after | about +0.2 to +0.3R |
 
 Any strategy with a stop around 10–15 points needs 1-minute (or tick) data to test honestly. With a wider 1.0 ATR stop, the result is about +0.05 to +0.10R, which is small.
+
+### 4. SpacemanBTC Key Levels compared with random prices
+
+`lab/key_levels.py` rebuilds the levels from SpacemanBTC's "Key Levels (IDWM)" indicator:
+
+- Daily, weekly, monthly, quarterly, and yearly opens
+- Previous highs, lows, and mids
+- 4H levels
+- Monday's range
+
+For each level, the test looks at the first touch of each trading day. Starting with the bar after the touch, it asks which comes first: a move of 1 ATR back, or 1 ATR through. Every level is compared with random prices taken from the previous day, the same method Osler used.
+
+Random levels held about 50% of the time. No key-level type beat random in both halves of the data by more than a few percentage points, which is within noise. The daily highs and lows held slightly less often than random. On their own, these levels don't predict a bounce or a break. Any edge has to come from how price reacts at the level.

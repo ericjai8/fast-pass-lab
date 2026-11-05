@@ -56,3 +56,23 @@ Any strategy with a stop around 10–15 points needs 1-minute (or tick) data to 
 For each level, the test looks at the first touch of each trading day. Starting with the bar after the touch, it asks which comes first: a move of 1 ATR back, or 1 ATR through. Every level is compared with random prices taken from the previous day, the same method Osler used.
 
 Random levels held about 50% of the time. No key-level type beat random in both halves of the data by more than a few percentage points, which is within noise. The daily highs and lows held slightly less often than random. On their own, these levels don't predict a bounce or a break. Any edge has to come from how price reacts at the level.
+
+### 5. Liquidity grabs (sweep and reclaim) with pivot-to-pivot targets
+
+`lab/sweep.py` tests sweeps of PDH, PDL, the overnight high/low, and the previous 4H high/low.
+
+**Entry:** short at the close of the bar that reclaims back below a swept high (long at the reclaim of a swept low). The sweep can be no deeper than 1.5 ATR, and the reclaim has to happen within 3 bars.
+
+**Stop:** 1 tick past the sweep's wick.
+
+**Targets:** 1R, 2R, 3R, or the next opposite swing pivot. In this data, the next pivot sat a median of about 4–5R away.
+
+**Results:**
+
+| Sweep | Avg R at 2R, first half / second half |
+|---|---|
+| Random prices (control) | −0.14 / −0.05 |
+| All key levels combined | close to random |
+| PDH | +0.20 / +0.13 (about 40% winners, n = 206) |
+
+PDH was the only level positive in both halves, and with only 206 trades that isn't statistically meaningful. Targeting the next pivot instead of a fixed R didn't help.

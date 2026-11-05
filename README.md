@@ -1,0 +1,45 @@
+# Fast Pass Lab
+
+Research into MNQ strategies that could pass a prop-firm eval quickly. The test account is a 50K eval: $3K target, $2K end-of-day trailing drawdown, and a 50% consistency rule. Every result here comes from honest fills, and each one is checked on two separate halves of the data. Paper research only.
+
+## Layout
+
+```
+data/       NQ 5m bars from Jan 2024 to Oct 2026, and 15m bars from 2020 to 2026
+lab/        data.py (loading, ATR, VWAP, daily levels), pivot_retest.py, breakout.py
+```
+
+## Findings so far (Nov 5, 2026)
+
+### 1. Pivot Retest has no edge
+
+The October backtest of Pivot Retest showed +0.25 to +0.38R per trade. That number came from a bug. On the bar where the limit order filled, the test counted the bar's whole range, including prices that traded before the fill. With that fixed, the strategy averages −0.23R per trade at a 2R target, and it loses in both halves of the data.
+
+### 2. What makes a level hold or break
+
+I faded swing pivots after a 3 ATR move and counted a level as "held" when price moved 1R away from it before hitting a 0.5 ATR stop. About 4,900 levels, both halves:
+
+| What predicts whether a level holds | Held |
+|---|---|
+| All levels | 32% |
+| At PDH, PDL, or the overnight high/low | 22% (major levels break more) |
+| Retested during NY AM | 23% (the morning breaks levels) |
+| Retested during the Asia session | 40% |
+| Pivot bar had low volume | 37–39% |
+| Fast return to the level | 28–31% |
+| Number of prior touches, level age, wick size, round numbers | No consistent effect |
+
+Fading still lost money in every bucket. The pattern matches Osler's (NY Fed) research on order flow: take-profit orders cluster at levels, and stop orders sit just beyond them. That's why big levels tend to break with force.
+
+### 3. Breakouts at major levels: 5m bars can't settle it
+
+I tested a stop-order entry 0.1 ATR beyond PDH, PDL, or the overnight high/low, with a 0.5 ATR stop.
+
+In 91% of trades, the 5m bar that filled the entry also touched the stop. A 5m bar doesn't show which came first, so the result depends entirely on that assumption:
+
+| Assumption on the fill bar | Avg R at a 2R target |
+|---|---|
+| Stop came first | about −0.8R |
+| Stop came after | about +0.2 to +0.3R |
+
+Any strategy with a stop around 10–15 points needs 1-minute (or tick) data to test honestly. With a wider 1.0 ATR stop, the result is about +0.05 to +0.10R, which is small.

@@ -1,0 +1,23 @@
+name: fetch 1m data
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install pandas requests yfinance
+      - run: python tools/fetch_1m.py
+      - name: commit data
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add data/*.csv.gz
+          git commit -m "1m data refresh" || echo "no changes"
+          git push

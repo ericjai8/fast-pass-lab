@@ -5,7 +5,10 @@ Research into MNQ strategies that could pass a prop-firm eval quickly. The test 
 ## Layout
 
 ```
-data/       NQ 5m bars from Jan 2024 to Oct 2026, and 15m bars from 2020 to 2026
+data/       NQ 5m bars from Jan 2024 to Oct 2026, 15m bars from 2020 to 2026,
+            Nasdaq-100 1m bars (Dukascopy CFD) from Jan 2024 to Nov 2026, real NQ 1m for the last ~4 weeks
+tools/      fetch_1m.py (run by the 'fetch 1m data' GitHub Action; this workspace has no internet)
+results/    per-trade CSVs
 lab/        data.py (loading, ATR, VWAP, daily levels), pivot_retest.py, breakout.py
 ```
 
@@ -76,3 +79,28 @@ Random levels held about 50% of the time. No key-level type beat random in both 
 | PDH | +0.20 / +0.13 (about 40% winners, n = 206) |
 
 PDH was the only level positive in both halves, and with only 206 trades that isn't statistically meaningful. Targeting the next pivot instead of a fixed R didn't help.
+
+### 6. Aggressive displacement / BOS on 1m: no edge (Nov 6, 2026)
+
+`lab/displacement_1m.py` tests the model from Eric's screenshot on 1-minute bars. A "bright" displacement candle is a big body (at least 2× the median of the last 20 candles), at least 70% body, a close in the outer 25%, and its close breaks the last swing pivot (BOS or CHoCH). Entry is at that candle's close (A), or at the next close once the FVG is confirmed (B). The stop goes 1 tick past the candle, and the target is 1.5R. Costs are about 1.1 points per trade (slippage plus MNQ commission). The control uses the same stop size at the same minute of day, on a random day with a random direction.
+
+Data is Dukascopy's Nasdaq-100 1m from Jan 2024 to Nov 2026, about 20,000 signals. Its 1m returns correlate 0.99 with real NQ, and candle sizes are the same.
+
+| | Trades | Win % | Avg R before costs | Avg R after costs |
+|---|---|---|---|---|
+| A: enter on candle close | 20,047 | 39.3 | about 0.00 | −0.16 |
+| B: enter after FVG confirms | 16,253 | 39.2 | about 0.00 | −0.16 |
+| Random control | 19,743 | 38.8 | about −0.01 | −0.16 |
+
+- Before costs, results match random entries every year (2024, 2025, 2026).
+- The median stop is only about 10 points, so costs alone take about 0.11R per trade.
+- None of these filters beats the control in all three years:
+  - first break vs later breaks in the leg
+  - C vs R against the 15m trend
+  - session
+  - stop size
+  - the playbook combination (C, first or second break, NY sessions)
+- Breakeven at +1R doesn't help.
+- Real NQ 1m for the last 4 weeks (about 530 signals) came out about −0.03R per trade against −0.14R for the control. That sample is too small to mean anything.
+
+Conclusion: on 1m, a big candle that breaks structure carries no information about the next 1.5R. The screenshot was one trending session.
